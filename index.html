@@ -7,6 +7,7 @@
 <meta name="description" content="Dr. Ygor Dantas, médico em Natal/RN (CRM/RN 11571). Emagrecimento conduzido como tratamento: avaliação completa, plano individualizado e acompanhamento. Agende pelo WhatsApp.">
 <link rel="canonical" href="https://site-ygor-dantas.vercel.app/">
 <meta name="theme-color" content="#0A1821">
+<meta name="color-scheme" content="only light">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
@@ -117,10 +118,11 @@ p{margin:0 0 1em}
 .link:hover{color:var(--latao)}
 
 /* Abertura */
-#intro{position:fixed;inset:0;z-index:100;display:none;pointer-events:none}
+#intro{position:fixed;inset:0;z-index:100;display:none;pointer-events:none;background:var(--noite)}
+#introGrid{position:absolute;inset:0;background:var(--hexgrid);opacity:0}
+html.intro-on .top,html.intro-on .wa{visibility:hidden}
 html.motion #intro{display:block;animation:introKill 0s 4.2s forwards}
 @keyframes introKill{to{visibility:hidden;opacity:0}}
-#intro svg{position:absolute;inset:0;width:100%;height:100%}
 .intro-logo{position:absolute;left:50%;top:50%;width:min(36vw,190px);transform:translate(-50%,-62%);text-align:center}
 .intro-mark{width:100%;aspect-ratio:222/246;background:var(--aco);-webkit-mask:url(/img/logo-mark.png) center/contain no-repeat;mask:url(/img/logo-mark.png) center/contain no-repeat;opacity:0}
 .intro-word{width:150%;margin:18% 0 0 -25%;aspect-ratio:350/133;background:var(--aco);-webkit-mask:url(/img/logo-wordmark.png) center/contain no-repeat;mask:url(/img/logo-wordmark.png) center/contain no-repeat;opacity:0}
@@ -353,16 +355,7 @@ html.motion [data-split] .wi{transform:translateY(110%)}
 <body>
 
 <div id="intro" aria-hidden="true">
-  <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <pattern id="hp" width="41.57" height="72" patternUnits="userSpaceOnUse"><path d="M20.785 0 41.57 12v24L20.785 48 0 36V12ZM20.785 48v24" fill="none" stroke="#9EA2A5" stroke-opacity=".09"/></pattern>
-      <mask id="hole"><rect width="1000" height="1000" fill="#fff"/><path id="holeHex" d="M500 -60 L551.96 -30 L551.96 30 L500 60 L448.04 30 L448.04 -30 Z" fill="#000" transform="translate(0 500) scale(0)" style="transform-origin:500px 500px"/></mask>
-    </defs>
-    <g mask="url(#hole)">
-      <rect width="1000" height="1000" fill="#0A1821"/>
-      <rect id="introGrid" width="1000" height="1000" fill="url(#hp)" opacity="0"/>
-    </g>
-  </svg>
+  <div id="introGrid"></div>
   <div class="intro-logo">
     <svg id="introDraw" viewBox="0 0 222 246" style="position:absolute;inset:0 0 auto 0;width:100%;height:auto;overflow:visible"><path d="M111 4 L216 64.5 L216 181.5 L111 242 L6 181.5 L6 64.5 Z" fill="none" stroke="#B08A55" stroke-width="2" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg>
     <div class="intro-mark"></div>
@@ -694,11 +687,13 @@ document.addEventListener('DOMContentLoaded', function () {
       .to(heroRot, { yPercent: 0, duration: 1.2 }, '<0.25')
       .to(heroReveal, { opacity: 1, y: 0, duration: 0.9, stagger: 0.12 }, '<0.3');
     gsap.from('.hero-photo img', { scale: 1.12, duration: 1.2 });
+    gsap.fromTo(['.top', '.wa'], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.9, delay: 0.5, clearProps: 'opacity,visibility' });
   }
   function endIntro() {
     if (!root.classList.contains('intro-on')) return;
     root.classList.remove('intro-on');
     document.getElementById('intro').style.display = 'none';
+    var h = document.getElementById('inicio'); h.style.clipPath = ''; h.style.webkitClipPath = '';
     lenis.start();
     ScrollTrigger.refresh();
   }
@@ -707,27 +702,29 @@ document.addEventListener('DOMContentLoaded', function () {
   (function intro() {
     introStarted = true;
     var hex = document.querySelector('#introDraw path');
-    var hole = document.getElementById('holeHex');
+    var hero = document.getElementById('inicio');
+    var introEl = document.getElementById('intro');
     var r = document.getElementById('introDraw').getBoundingClientRect();
-    var vmax = Math.max(innerWidth, innerHeight);
-    /* o furo começa do tamanho do hexágono desenhado e cresce até cobrir a tela */
-    var svgScale = 1000 / vmax; /* unidades do viewBox por pixel (slice) */
-    var startS = (r.height * svgScale) / 120;
-    var endS = (Math.hypot(innerWidth, innerHeight) / 2 * svgScale) / 52 * 1.15;
-    var cy = (r.top + r.height / 2 - innerHeight / 2) * svgScale + 500;
-    var cx = (r.left + r.width / 2 - innerWidth / 2) * svgScale + 500;
-    hole.setAttribute('d', 'M' + cx + ' ' + (cy - 60) + ' L' + (cx + 51.96) + ' ' + (cy - 30) + ' L' + (cx + 51.96) + ' ' + (cy + 30) + ' L' + cx + ' ' + (cy + 60) + ' L' + (cx - 51.96) + ' ' + (cy + 30) + ' L' + (cx - 51.96) + ' ' + (cy - 30) + ' Z');
-    hole.removeAttribute('transform');
-    gsap.set(hole, { scale: 0, svgOrigin: cx + ' ' + cy });
-    var tl = gsap.timeline({ onComplete: function () { clearTimeout(safety); endIntro(); } });
+    var hr = hero.getBoundingClientRect();
+    /* a hero aparece por um hexágono que nasce do tamanho do desenho e cresce até cobrir a tela */
+    var cx = r.left + r.width / 2 - hr.left, cy = r.top + r.height / 2 - hr.top;
+    var maxR = Math.hypot(Math.max(cx, hr.width - cx), Math.max(cy, innerHeight - cy)) * 1.25;
+    var o = { R: r.height / 2 * 0.92 };
+    function clip() {
+      var R = o.R, w = R * 0.866;
+      var v = 'polygon(' + cx + 'px ' + (cy - R) + 'px,' + (cx + w) + 'px ' + (cy - R / 2) + 'px,' + (cx + w) + 'px ' + (cy + R / 2) + 'px,' + cx + 'px ' + (cy + R) + 'px,' + (cx - w) + 'px ' + (cy + R / 2) + 'px,' + (cx - w) + 'px ' + (cy - R / 2) + 'px)';
+      hero.style.webkitClipPath = v; hero.style.clipPath = v;
+    }
+    var tl = gsap.timeline({ onComplete: function () { clearTimeout(safety); hero.style.clipPath = ''; hero.style.webkitClipPath = ''; endIntro(); } });
     tl.to('#introGrid', { opacity: 1, duration: 0.6 }, 0)
       .to(hex, { strokeDashoffset: 0, duration: 0.9 }, 0.1)
       .to('.intro-mark', { opacity: 1, duration: 0.6 }, 0.75)
       .to(hex, { opacity: 0, duration: 0.6 }, 0.95)
       .fromTo('.intro-word', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6 }, 0.95)
       .to(['.intro-mark', '.intro-word'], { opacity: 0, duration: 0.6 }, 1.75)
-      .fromTo(hole, { scale: startS * 0.92 }, { scale: endS, duration: 0.9, ease: 'expo.in', immediateRender: false }, 1.7)
-      .add(startHero, 2.15);
+      .add(function () { clip(); introEl.style.background = 'transparent'; gsap.set('#introGrid', { opacity: 0 }); }, 2.15)
+      .to(o, { R: maxR, duration: 0.9, ease: 'expo.in', onUpdate: clip }, 2.15)
+      .add(startHero, 2.6);
   })();
 
   /* Palavra que alterna em laço no título da hero */
