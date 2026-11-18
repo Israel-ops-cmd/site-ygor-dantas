@@ -726,7 +726,7 @@ document.addEventListener('DOMContentLoaded', function () {
       .to(hex, { opacity: 0, duration: 0.6 }, 0.95)
       .fromTo('.intro-word', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6 }, 0.95)
       .to(['.intro-mark', '.intro-word'], { opacity: 0, duration: 0.6 }, 1.75)
-      .fromTo(hole, { scale: startS * 0.92 }, { scale: endS, duration: 0.9, ease: 'expo.in' }, 1.7)
+      .fromTo(hole, { scale: startS * 0.92 }, { scale: endS, duration: 0.9, ease: 'expo.in', immediateRender: false }, 1.7)
       .add(startHero, 2.15);
   })();
 
